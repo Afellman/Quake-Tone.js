@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Quake</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+  <link rel="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" type="text/css" media="screen" href="main.css"/>
+  <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+  <script src="node_modules/tone/build/Tone.js"> </script>
+  <script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+  
+</head>
+<style>
+  body {
+    font-family: 'Inconsolata', monospace;
+    height: 100vh;
+    width: 100vw;
+    background: linear-gradient(90deg,#166c7fef,#276a79ef) ;
+		transition: .5s ease-in-out;
+  }
+
+  .square {
+    border-radius: 20px;
+    transition: .2s ease-in-out;
+    margin: 0 auto;
+    height: 500px;
+    width: 1000px;
+    background: #276a79ef;
+    color: black;
+    overflow-wrap: break-word;
+    font-size: 3em;
+    line-height: .7;
+    letter-spacing: 0px;
+  }
+  .square p  {
+    
+    display: inline;
+    /* line-height: .1; */
+  }
+
+  #buttons {
+    /* margin: 0 auto; */
+    /* display: inline; */
+    
+  }
+  #start {
+    margin-left: 25%;
+    /* display: inline-block; */
+    height: 33vh;
+    width: 50vw;
+  }
+  #stop {
+    margin-left: 25%;
+    /* display: inline-block; */
+    height: 33vh;
+    width: 50vw;
+  }
+
+  #synthspeed {
+    width: 50vw;
+  }
+
+  #reverb {
+    width: 50vw;
+  }
+</style>
+<body>
+  <div id="buttons">
+    <button id="kick" type="button">Kick</button>
+    <button id="snare" type="button">Snare</button>
+    <button id="hit" type="button">Hit</button>
+    <button id="shaker" type="button">Shaker</button>
+  </div>
+  <div class='square'>
+  </div>
+</body>
+<script>
+  // Slash counter to reset
+  var slash_total = 0;
+  // Setting BPM
+  Tone.Transport.bpm.value = 120;
+
+  // Synth Loop 
+  
+  var autoFilter = new Tone.AutoFilter("8n").toMaster().start();
+  var synth = new Tone.Synth()
+  var reverb = new Tone.JCReverb(.9).toMaster()
+  var feedbackDelay = new Tone.FeedbackDelay("8n", 1).toMaster();
+  var synthLopp = new Tone.Loop(function (time) {
+    console.log('foo')
+    synth.triggerAttackRelease('Eb3', "2n").chain(feedbackDelay, reverb, autoFilter);
+  }, "1n").start(0);
+  // Starting synth loop
+    Tone.Transport.start();
+  
+  // Sampler setup 
+  let sampler = new Tone.Sampler({
+    "C4": "Kick.wav",
+    "D4": "Hit.wav",
+    "E4": "Shaker1.wav",
+    "F4": "Snare.wav",
+  }).toMaster();
+
+  // Background color array
+ let background = {
+		colors: [
+		'#166c7fef', '#16297def', '#35167fef' ,
+		'#66167fef', '#7f1630ef', 'black' 
+	],
+		index: 0
+  }
+
+  // -=-=-=-=-=-=-= Adding slashes function -=-=-=-=-=-=-=-=-=-=-
+
+  function appnedLine() {
+      var slash_index = 0;
+      var token = setInterval(function () {
+        slash_total++
+        slash_index++
+        var rando = Math.floor(Math.random() * 2);
+        var kids = $('.square')
+        if (rando == 1) {
+          kids.append('<p>/</p>')
+        } else {
+          kids.append('<p>\\</p>')
+        }
+        if (slash_index > 10) {
+          clearInterval(token)
+        }
+      }, 1)
+    };
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+	// Button event listeners
+  $('#kick').on('click', function() {
+			sampler.triggerAttack("C4")
+  })
+  $('#hit').on('click', function () {
+      sampler.triggerAttack("D4")
+  })
+  
+  $('#snare').on('click', function () {
+      sampler.triggerAttack("F4")
+  })
+  $('#shaker').on('click', function () {
+      sampler.triggerAttack("E4")
+    })
+
+		// Keypress listener and switchcase
+		$(document).on('keypress', function (e) {
+			let new_bg = background.colors[background.index]
+			
+			let key_pressed = e.originalEvent.key
+			console.log(e.originalEvent.key)
+			// a = kick, s = snare, d = hihat, e = shaker
+			if (key_pressed == "a") {
+				sampler.triggerAttack("C4")
+        $('body').css({ 'background': background.colors[0]})
+        $('.square').css({ 'background': background.colors[1] })
+        appnedLine()
+			} else if (key_pressed == "s") {
+				sampler.triggerAttack("F4")
+        $('body').css({ 'background': background.colors[1] })
+        $('.square').css({ 'background': background.colors[2]})
+        appnedLine()
+			} else if (key_pressed == 'd') {
+				sampler.triggerAttack("D4")
+        $('body').css({'background': background.colors[2]})
+        $('.square').css({ 'background': background.colors[3]})
+        appnedLine()
+			} else if (key_pressed == 'e'){
+				sampler.triggerAttack("E4")
+        $('body').css({ 'background': background.colors[3] })
+        $('.square').css({ 'background': background.colors[4] })
+        appnedLine()
+			}
+			background.index++
+			if (background.index == 5) {
+				background.index = 0
+			}
+    })
+
+
+    
+
+
+
+</script>
+</html>

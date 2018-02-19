@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Quake</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+  <link rel="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" type="text/css" media="screen" href="main.css"/>
+  <script src="node_modules/tone/build/Tone.js"> </script>
+  <script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+  
+</head>
+<style>
+  body {
+    height: 100vh;
+    width: 100vw;
+    background: linear-gradient(90deg,#166c7fef,#276a79ef) ;
+  }
+  #buttons {
+    /* margin: 0 auto; */
+    /* display: inline; */
+    
+  }
+  #start {
+    margin-left: 25%;
+    /* display: inline-block; */
+    height: 33vh;
+    width: 50vw;
+  }
+  #stop {
+    margin-left: 25%;
+    /* display: inline-block; */
+    height: 33vh;
+    width: 50vw;
+  }
+
+  #synthspeed {
+    width: 50vw;
+  }
+
+  #reverb {
+    width: 50vw;
+  }
+</style>
+<body>
+  <div id="buttons">
+    <button id="start" type="button">Start</button>
+    <button id="stop" type="button">Stop</button>
+  </div>
+  <input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="14"/>
+  <input type="range" min="1" max="100" value="50" id="synthspeed">
+  <input type="range" min="1" max="100" value="50" id="reverb">
+  <input type="range" min="200" max="1000" value="440" id="hertz">
+</body>
+<script>
+
+  // Instruments
+  var kick = new Tone.MembraneSynth().toMaster();
+  var synth = new Tone.AMSynth()
+  var hertz;
+  // Effects  
+  var reverb = new Tone.JCReverb(.7).toMaster()
+  // var filter = new Tone.Filter(800, "highpass").toMaster()
+  var lfo = new Tone.LFO("4n", 800, 4000);
+  // lfo.connect(filter.frequency);
+
+  // Scale (Eb minor)
+  var notes = [
+    'Eb4', 'Gb4', 'Ab4',
+    'Bb4', 'Db5', 'Eb5' 
+  ];
+debugger
+  // {{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{  ** Loops ** 
+
+var kickLoop = new Tone.Loop(function(time){ 
+ kick.triggerAttackRelease("C2", "8n", time);
+}, "2n").start(0);
+
+// Index for synth loop
+var i = 0
+// Synth loop changing note from note array index i 
+var synthLopp = new Tone.Loop(function(time) {
+  synth.triggerAttackRelease(hertz, "8n", time).chain(reverb);
+  i++
+  if(i == 6){
+    i = 0
+  };
+}, .5).start(0);
+
+// }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+
+// Setting tempo
+Tone.Transport.bpm.value = 120;
+
+// jQuery event listeners
+$('#start').on('click', function() {
+Tone.Transport.start();
+})
+$('#stop').on('click', function() { 
+  Tone.Transport.stop(); 
+})
+
+$('#synthspeed').on('change', function(event){
+  // console.log($(this).val())
+  var slider_value = $(this).val() * .005
+  synthLopp.interval = slider_value;
+  console.log(slider_value)
+  
+})
+
+$('#reverb').on('change', function(event) {
+  console.log(reverb.roomSize.input.value)
+  var slider2_value = $(this).val()  * .01
+  reverb.roomSize.input.value = slider2_value;
+})
+
+$('#hertz').on('change', function(event){
+  hertz = $(this).val();
+})
+
+  
+
+</script>
+</html>
