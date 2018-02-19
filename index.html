@@ -17,13 +17,23 @@
 </head>
 <style>
   body {
+     border-radius: 20px;
+    transition: .2s ease-in-out;
+    margin: 0 auto;
+    height: 500px;
+    width: 1000px;
+    background: #276a79ef;
+    color: black;
+    overflow-wrap: break-word;
+    font-size: 3em;
+    line-height: .65;
     font-family: 'Inconsolata', monospace;
     height: 100vh;
     width: 100vw;
     background: linear-gradient(90deg,#166c7fef,#276a79ef) ;
 		transition: .5s ease-in-out;
   }
-
+/* 
   .square {
     border-radius: 20px;
     transition: .2s ease-in-out;
@@ -34,14 +44,16 @@
     color: black;
     overflow-wrap: break-word;
     font-size: 3em;
-    line-height: .7;
-    letter-spacing: 0px;
-  }
-  .square p  {
+    line-height: .65;
+ 
+  } */
+    body p  {
     
     display: inline;
+     letter-spacing: -10px;
     /* line-height: .1; */
   }
+
 
   #buttons {
     /* margin: 0 auto; */
@@ -70,33 +82,39 @@
   }
 </style>
 <body>
-  <div id="buttons">
-    <button id="kick" type="button">Kick</button>
-    <button id="snare" type="button">Snare</button>
-    <button id="hit" type="button">Hit</button>
-    <button id="shaker" type="button">Shaker</button>
-  </div>
   <div class='square'>
   </div>
+  <button class="btn btn-default" id="startsynth">Start Synth</button>
+  <button class="btn btn-default" id="stopsynth">Stop Synth</button>
 </body>
 <script>
+
+
+
   // Slash counter to reset
   var slash_total = 0;
+  var mousex;
+  var mousey;
   // Setting BPM
   Tone.Transport.bpm.value = 120;
 
+
+  // var autoFilter = new Tone.AutoFilter("4n").toMaster().start();
+  var synth = new Tone.PolySynth()
+  var reverb = new Tone.JCReverb(.5).toMaster()
+  // var feedbackDelay = new Tone.FeedbackDelay("4n", .7).toMaster();
+
   // Synth Loop 
-  
-  var autoFilter = new Tone.AutoFilter("8n").toMaster().start();
-  var synth = new Tone.Synth()
-  var reverb = new Tone.JCReverb(.9).toMaster()
-  var feedbackDelay = new Tone.FeedbackDelay("8n", 1).toMaster();
   var synthLopp = new Tone.Loop(function (time) {
+    $("body").mousemove(function (event) {
+    mousex = event.pageX
+    mousey = event.pageY * 1.5
+  });
     console.log('foo')
-    synth.triggerAttackRelease('Eb3', "2n").chain(feedbackDelay, reverb, autoFilter);
-  }, "1n").start(0);
+    synth.triggerAttackRelease(mousey, "8n").chain(reverb)
+  }, mousex).start(0);
   // Starting synth loop
-    Tone.Transport.start();
+    
   
   // Sampler setup 
   let sampler = new Tone.Sampler({
@@ -123,7 +141,7 @@
         slash_total++
         slash_index++
         var rando = Math.floor(Math.random() * 2);
-        var kids = $('.square')
+        var kids = $('body')
         if (rando == 1) {
           kids.append('<p>/</p>')
         } else {
@@ -138,19 +156,14 @@
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 	// Button event listeners
-  $('#kick').on('click', function() {
-			sampler.triggerAttack("C4")
+  $('#startsynth').on('click', function(){
+   Tone.Transport.start();
   })
-  $('#hit').on('click', function () {
-      sampler.triggerAttack("D4")
-  })
-  
-  $('#snare').on('click', function () {
-      sampler.triggerAttack("F4")
-  })
-  $('#shaker').on('click', function () {
-      sampler.triggerAttack("E4")
+
+  $('#stopsynth').on('click', function () {
+      Tone.Transport.stop();
     })
+
 
 		// Keypress listener and switchcase
 		$(document).on('keypress', function (e) {
